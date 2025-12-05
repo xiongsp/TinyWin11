@@ -1,0 +1,69 @@
+# Logs
+logs/
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+temp/
+tmp/
+
+# ISO files (don't commit large ISO files to git)
+*.iso
+*.wim
+
+# Windows image files
+*.esd
+*.swm
+
+# Release artifacts
+release/
+dist/
+build/
+
+# Checksum files
+*.md5
+*.sha1
+*.sha256
+*.sha512
+
+# PowerShell
+*.ps1.bak
+
+# OS specific
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Node modules (if using any JS tools)
+node_modules/
+
+# Python (if using any Python tools)
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+ENV/
+
+# Archives
+*.zip
+*.rar
+*.7z
+*.tar
+*.gz
+
+# Mount points
+mnt/
+mount/
+
+# Downloaded dependencies
+downloads/

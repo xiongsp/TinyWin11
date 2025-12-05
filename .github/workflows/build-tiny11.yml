@@ -1,0 +1,147 @@
+name: Build Tiny11 ISO
+
+on:
+  workflow_dispatch:
+    inputs:
+      windows_version:
+        description: 'Windows 11 version to build'
+        required: true
+        default: '25H2'
+        type: choice
+        options:
+          - 25H2
+      build_type:
+        description: 'Build type'
+        required: true
+        default: 'both'
+        type: choice
+        options:
+          - both
+          - tiny11
+          - tiny11core
+
+jobs:
+  build-tiny11:
+    runs-on: windows-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Download Windows 11 ISO
+        id: download_iso
+        run: |
+          .\scripts\Download-WindowsISO.ps1 `
+            -LinksFile "iso-links.txt" `
+            -OutputPath "D:\downloads\Windows11.iso" `
+            -MinSizeGB 3
+        shell: powershell
+      
+      - name: Download Tiny11 Builder Scripts
+        run: |
+          Write-Host "Downloading Tiny11 Builder scripts..."
+          
+          # 下载 tiny11maker.ps1
+          $tiny11MakerUrl = "https://raw.githubusercontent.com/ntdevlabs/tiny11builder/main/tiny11maker.ps1"
+          $tiny11CoreMakerUrl = "https://raw.githubusercontent.com/ntdevlabs/tiny11builder/main/tiny11Coremaker.ps1"
+          
+          Invoke-WebRequest -Uri $tiny11MakerUrl -OutFile "tiny11maker.ps1"
+          Invoke-WebRequest -Uri $tiny11CoreMakerUrl -OutFile "tiny11Coremaker.ps1"
+          
+          Write-Host "Scripts downloaded successfully"
+        shell: powershell
+      
+      - name: Mount Windows 11 ISO
+        id: mount_iso
+        run: |
+          $isoPath = "${{ steps.download_iso.outputs.iso_path }}"
+          Write-Host "Mounting ISO: $isoPath"
+          
+          # 挂载 ISO
+          $mountResult = Mount-DiskImage -ImagePath $isoPath -PassThru
+          $driveLetter = ($mountResult | Get-Volume).DriveLetter
+          
+          Write-Host "ISO mounted to drive: ${driveLetter}:"
+          echo "drive_letter=$driveLetter" >> $env:GITHUB_OUTPUT
+        shell: powershell
+      
+      - name: Build Tiny11
+        if: ${{ github.event.inputs.build_type == 'tiny11' || github.event.inputs.build_type == 'both' }}
+        run: |
+          .\scripts\Build-Tiny11.ps1 `
+            -BuildType "tiny11" `
+            -DriveLetter "${{ steps.mount_iso.outputs.drive_letter }}" `
+            -ScriptPath ".\tiny11maker.ps1"
+        shell: powershell
+      
+      - name: Build Tiny11 Core
+        if: ${{ github.event.inputs.build_type == 'tiny11core' || github.event.inputs.build_type == 'both' }}
+        run: |
+          .\scripts\Build-Tiny11.ps1 `
+            -BuildType "tiny11core" `
+            -DriveLetter "${{ steps.mount_iso.outputs.drive_letter }}" `
+            -ScriptPath ".\tiny11Coremaker.ps1"
+        shell: powershell
+      
+      - name: Unmount ISO
+        if: always()
+        run: |
+          $isoPath = "${{ steps.download_iso.outputs.iso_path }}"
+          if (Test-Path $isoPath) {
+              Write-Host "Unmounting ISO..."
+              Dismount-DiskImage -ImagePath $isoPath -ErrorAction SilentlyContinue
+          }
+        shell: powershell
+      
+      - name: Prepare Release Assets
+        id: prepare_assets
+        run: |
+          .\scripts\Prepare-Release.ps1 `
+            -ReleaseDir "release" `
+            -IsoNames @("tiny11.iso", "tiny11core.iso")
+        shell: powershell
+      
+      - name: Generate Release Notes
+        id: release_notes
+        run: |
+          .\scripts\Generate-ReleaseNotes.ps1 `
+            -ReleaseDir "release" `
+            -WindowsVersion "${{ github.event.inputs.windows_version }}" `
+            -BuildType "${{ github.event.inputs.build_type }}" `
+            -SourceUrl "${{ steps.download_iso.outputs.iso_url }}" `
+            -RunNumber "${{ github.run_number }}" `
+            -RunId "${{ github.run_id }}" `
+            -ServerUrl "${{ github.server_url }}" `
+            -Repository "${{ github.repository }}"
+        shell: powershell
+      
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: ${{ steps.release_notes.outputs.release_title }}
+          tag_name: build-${{ github.run_number }}
+          body_path: release/RELEASE_NOTES.md
+          files: |
+            release/*.iso
+            release/*.sha256
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Cleanup
+        if: always()
+        run: |
+          Write-Host "Cleaning up temporary files..."
+          
+          # 清理下载的 ISO
+          if (Test-Path "D:\downloads") {
+              Remove-Item -Path "D:\downloads" -Recurse -Force -ErrorAction SilentlyContinue
+          }
+          
+          # 清理脚本文件
+          Remove-Item -Path "tiny11maker.ps1" -Force -ErrorAction SilentlyContinue
+          Remove-Item -Path "tiny11Coremaker.ps1" -Force -ErrorAction SilentlyContinue
+          
+          Write-Host "Cleanup completed"
+        shell: powershell
