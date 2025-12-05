@@ -16,21 +16,30 @@ Write-Host "Downloading Windows 11 ISO..."
 
 # 创建下载目录
 $downloadDir = Split-Path -Parent $OutputPath
+if ([string]::IsNullOrEmpty($downloadDir)) {
+    $downloadDir = "."
+}
+
 if (-not (Test-Path $downloadDir)) {
     New-Item -ItemType Directory -Path $downloadDir -Force | Out-Null
 }
 
-# 检查配置文件是否存在
+# Check configuration file exists
 if (-not (Test-Path $LinksFile)) {
     Write-Error "ISO links file not found: $LinksFile"
     Write-Error "Please create iso-links.txt with download URLs"
     exit 1
 }
 
-# 读取所有非注释、非空行
-$isoUrls = Get-Content $LinksFile | Where-Object { 
-    $_ -match '\S' -and $_ -notmatch '^\s*#' 
-} | ForEach-Object { $_.Trim() }
+# Read all non-comment, non-empty lines
+$allLines = Get-Content $LinksFile
+$isoUrls = @()
+foreach ($line in $allLines) {
+    $trimmedLine = $line.Trim()
+    if ($trimmedLine -match '\S' -and $trimmedLine -notmatch '^\s*#') {
+        $isoUrls += $trimmedLine
+    }
+}
 
 if ($isoUrls.Count -eq 0) {
     Write-Error "No valid ISO URLs found in $LinksFile"
@@ -45,10 +54,12 @@ $successUrl = ""
 
 # 依次尝试每个下载链接
 foreach ($isoUrl in $isoUrls) {
-    Write-Host "`n================================================"
+    Write-Host ""
+    Write-Host "================================================"
     Write-Host "Attempting to download from: $isoUrl"
     Write-Host "Saving to: $OutputPath"
-    Write-Host "================================================`n"
+    Write-Host "================================================"
+    Write-Host ""
     
     try {
         # 使用 curl 下载，显示进度
@@ -62,12 +73,15 @@ foreach ($isoUrl in $isoUrls) {
             # 验证文件大小是否合理
             if ($fileSize -gt $MinSizeGB) {
                 $fileSizeRounded = [math]::Round($fileSize, 2)
-                Write-Host "`n================================================"
-                Write-Host "✓ Download completed successfully!"
+                $downloadTimeStr = "{0:hh\:mm\:ss}" -f $downloadTime
+                Write-Host ""
+                Write-Host "================================================"
+                Write-Host "Download completed successfully!"
                 Write-Host "  File size: $fileSizeRounded GB"
-                Write-Host "  Download time: $($downloadTime.ToString('hh\:mm\:ss'))"
+                Write-Host "  Download time: $downloadTimeStr"
                 Write-Host "  Source: $isoUrl"
-                Write-Host "================================================`n"
+                Write-Host "================================================"
+                Write-Host ""
                 
                 $downloadSuccess = $true
                 $successUrl = $isoUrl
@@ -86,8 +100,9 @@ foreach ($isoUrl in $isoUrls) {
 }
 
 if (-not $downloadSuccess) {
-    Write-Error "`n================================================"
-    Write-Error "✗ Failed to download ISO from all configured URLs"
+    Write-Host ""
+    Write-Error "================================================"
+    Write-Error "Failed to download ISO from all configured URLs"
     Write-Error "  Please check iso-links.txt and ensure URLs are valid"
     Write-Error "================================================"
     exit 1

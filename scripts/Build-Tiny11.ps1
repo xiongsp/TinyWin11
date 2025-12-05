@@ -18,36 +18,39 @@ Write-Host "Build Type: $BuildType"
 Write-Host "Drive Letter: $DriveLetter"
 Write-Host "Script Path: $ScriptPath"
 
-# 设置执行策略
+# Set execution policy
 Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
 
-# 检查脚本是否存在
+# Check if script exists
 if (-not (Test-Path $ScriptPath)) {
     Write-Error "Script not found: $ScriptPath"
     exit 1
 }
 
-# 准备自动输入的答案
-# 注意：这些答案需要根据实际脚本的提示来调整
-$answers = @(
-    $DriveLetter,  # 驱动器号
-    "y",           # 确认
-    ""             # 额外的空行
-)
+# Prepare automated input answers
+# Note: These answers need to be adjusted based on actual script prompts
+$answers = @()
+$answers += $DriveLetter  # Drive letter
+$answers += "y"           # Confirmation
+$answers += ""            # Extra empty line
 
-Write-Host "`n================================================"
+Write-Host ""
+Write-Host "================================================"
 Write-Host "Starting automated build process..."
 Write-Host "Using mounted drive: ${DriveLetter}:"
-Write-Host "================================================`n"
+Write-Host "================================================"
+Write-Host ""
 
 try {
     # 使用管道自动输入答案
-    $answers | & $ScriptPath
+    $result = $answers | & $ScriptPath
     
     if ($LASTEXITCODE -eq 0 -or $null -eq $LASTEXITCODE) {
-        Write-Host "`n================================================"
-        Write-Host "✓ Build completed successfully!"
-        Write-Host "================================================`n"
+        Write-Host ""
+        Write-Host "================================================"
+        Write-Host "Build completed successfully!"
+        Write-Host "================================================"
+        Write-Host ""
         exit 0
     } else {
         Write-Error "Build failed with exit code: $LASTEXITCODE"

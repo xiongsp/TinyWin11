@@ -6,17 +6,21 @@ param(
     [string]$ReleaseDir,
     
     [Parameter(Mandatory=$false)]
-    [string[]]$IsoNames = @("tiny11.iso", "tiny11core.iso")
+    [string[]]$IsoNames
 )
+
+if ($null -eq $IsoNames -or $IsoNames.Count -eq 0) {
+    $IsoNames = @("tiny11.iso", "tiny11core.iso")
+}
 
 Write-Host "Preparing release assets..."
 
-# 创建发布目录
+# Create release directory
 if (-not (Test-Path $ReleaseDir)) {
     New-Item -ItemType Directory -Path $ReleaseDir -Force | Out-Null
 }
 
-# 查找生成的 ISO 文件
+# Find generated ISO files
 $outputIsos = @()
 foreach ($isoName in $IsoNames) {
     if (Test-Path $isoName) {
@@ -32,20 +36,21 @@ if ($outputIsos.Count -eq 0) {
 
 Write-Host "Found $($outputIsos.Count) ISO file(s)"
 
-# 移动文件并计算哈希
+# Move files and calculate hashes
 foreach ($iso in $outputIsos) {
-    Write-Host "`nProcessing: $iso"
+    Write-Host ""
+    Write-Host "Processing: $iso"
     
     $destPath = Join-Path $ReleaseDir $iso
     Move-Item -Path $iso -Destination $destPath -Force
     
-    # 计算 SHA256 哈希
+    # Calculate SHA256 hash
     Write-Host "  Calculating SHA256 hash..."
     $hash = Get-FileHash -Path $destPath -Algorithm SHA256
     $hashFile = "$destPath.sha256"
     "$($hash.Hash)  $(Split-Path $destPath -Leaf)" | Out-File -FilePath $hashFile -Encoding ASCII
     
-    # 显示文件信息
+    # Display file information
     $fileSize = (Get-Item $destPath).Length / 1GB
     $fileSizeRounded = [math]::Round($fileSize, 2)
     Write-Host "  Size: $fileSizeRounded GB"
@@ -53,15 +58,17 @@ foreach ($iso in $outputIsos) {
     Write-Host "  Hash file: $hashFile"
 }
 
-# 输出到 GitHub Actions 环境变量
+# Output to GitHub Actions environment variables
 if ($env:GITHUB_OUTPUT) {
     "iso_count=$($outputIsos.Count)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
 }
 
-Write-Host "`n================================================"
-Write-Host "✓ Release assets prepared successfully!"
+Write-Host ""
+Write-Host "================================================"
+Write-Host "Release assets prepared successfully!"
 Write-Host "  Location: $ReleaseDir"
 Write-Host "  Files: $($outputIsos.Count) ISO(s) + checksums"
-Write-Host "================================================`n"
+Write-Host "================================================"
+Write-Host ""
 
 exit 0
