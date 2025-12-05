@@ -42,12 +42,21 @@
 1. 在 "Actions" 页面，选择左侧的 "Build Tiny11 ISO" 工作流
 2. 点击右侧的 "Run workflow" 按钮
 3. 选择构建选项：
-   - **Windows version**: 选择要构建的 Windows 11 版本（默认：latest）
+   - **Windows version**: 选择要构建的 Windows 11 版本（默认：25H2）
    - **Build type**: 选择构建类型
      - `both`: 同时构建 Tiny11 和 Tiny11 Core
      - `tiny11`: 仅构建 Tiny11
      - `tiny11core`: 仅构建 Tiny11 Core
+   - **Image index**: 选择 Windows 版本（默认：4 - 专业版）
+     - `1`: 家庭版
+     - `2`: 家庭单语言版
+     - `3`: 教育版
+     - `4`: **专业版（推荐）**
+     - `5`: 专业教育版
+     - `6`: 专业工作站版
 4. 点击绿色的 "Run workflow" 按钮开始构建
+
+> **提示**: 关于镜像索引的详细说明，请参阅 [image-index.md](image-index.md)
 
 ### 5. 下载构建结果
 

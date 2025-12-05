@@ -130,34 +130,60 @@ if ($fileSize -gt 3) {  # 至少 3GB
 ```powershell
 # 准备自动输入的答案
 $answers = @(
-    $driveLetter,  # ISO 挂载的驱动器号
-    "y",           # 确认继续
-    ""             # 其他可能的输入
+    "yes",              # 执行策略确认
+    $DriveLetter,       # ISO 挂载的驱动器号（不带冒号）
+    $ImageIndex,        # Windows 版本索引
+    ""                  # 最终确认
 )
 
 # 通过管道传递给脚本
-$answers | .\tiny11maker.ps1
+$answers | & pwsh -NoProfile -Command "& '$ScriptPath'"
 ```
+
+### 镜像索引配置
+
+工作流支持选择不同的 Windows 11 版本：
+
+| 索引 | 版本 | 推荐场景 |
+|------|------|---------|
+| 1 | 家庭版 | 轻量需求 |
+| 2 | 家庭单语言版 | OEM 设备 |
+| 3 | 教育版 | 教育机构 |
+| **4** | **专业版** | **推荐 - 默认选项** |
+| 5 | 专业教育版 | 教育专业 |
+| 6 | 专业工作站版 | 高性能工作站 |
+
+在 GitHub Actions 工作流中：
+- 默认值: `4` (专业版)
+- 可通过 workflow_dispatch 输入参数修改
+- 详细说明参见 [image-index.md](image-index.md)
 
 ### 工作原理
 
 1. **自动挂载 ISO**：工作流自动挂载下载的 ISO 并获取驱动器号
-2. **传递参数**：将驱动器号作为第一个输入传递给脚本
-3. **自动确认**：自动回答 "y" 确认所有提示
-4. **非交互式运行**：整个过程无需人工干预
+2. **执行策略确认**：自动回答 "yes" 同意修改执行策略
+3. **驱动器选择**：自动传递挂载的驱动器字母
+4. **版本选择**：自动传递用户选择的镜像索引
+5. **非交互式运行**：整个过程无需人工干预
 
-### 自定义脚本输入
+### 本地测试自定义
 
-如果原始脚本需要不同的输入，修改 `$answers` 数组：
+本地运行时可以指定不同的镜像索引：
 
 ```powershell
-$answers = @(
-    $driveLetter,           # 第一个输入：驱动器号
-    "y",                    # 第二个输入：确认
-    "1",                    # 第三个输入：选项 1
-    "Pro",                  # 第四个输入：版本选择
-    ""                      # 最后的空行
-)
+# 构建专业版（推荐）
+.\scripts\Build-Tiny11.ps1 `
+    -BuildType "tiny11" `
+    -DriveLetter "E" `
+    -ScriptPath ".\tiny11maker.ps1" `
+    -ImageIndex 4
+
+# 构建家庭版（更轻量）
+.\scripts\Build-Tiny11.ps1 `
+    -BuildType "tiny11" `
+    -DriveLetter "E" `
+    -ScriptPath ".\tiny11maker.ps1" `
+    -ImageIndex 1
 ```
 
 ### 高级选项：修改脚本

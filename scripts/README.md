@@ -39,14 +39,27 @@
 .\Build-Tiny11.ps1 `
     -BuildType "tiny11" `
     -DriveLetter "E" `
-    -ScriptPath ".\tiny11maker.ps1"
+    -ScriptPath ".\tiny11maker.ps1" `
+    -ImageIndex 4
 ```
+
+**参数说明：**
+- `BuildType`: 构建类型 (tiny11/tiny11core/both)
+- `DriveLetter`: 挂载的 ISO 驱动器字母（不带冒号）
+- `ScriptPath`: tiny11maker.ps1 或 tiny11Coremaker.ps1 的路径
+- `ImageIndex`: Windows 镜像索引 (1-6)，默认为 4（专业版）
+  - 1: 家庭版
+  - 2: 家庭单语言版
+  - 3: 教育版
+  - 4: 专业版（推荐）
+  - 5: 专业教育版
+  - 6: 专业工作站版
 
 **功能：**
 - 自动检测并使用 PowerShell 7（如果可用）
 - tiny11maker.ps1 需要 PowerShell 7 才能正常运行
 - 自动设置执行策略
-- 通过管道提供自动化输入
+- 自动化输入（包括镜像索引选择）
 - 错误处理和日志记录
 
 **要求：**

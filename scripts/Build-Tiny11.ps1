@@ -10,7 +10,10 @@ param(
     [string]$DriveLetter,
     
     [Parameter(Mandatory=$true)]
-    [string]$ScriptPath
+    [string]$ScriptPath,
+    
+    [Parameter(Mandatory=$false)]
+    [int]$ImageIndex = 4
 )
 
 Write-Host "Building Tiny11..."
@@ -28,16 +31,23 @@ if (-not (Test-Path $ScriptPath)) {
 }
 
 # Prepare automated input answers
-# Note: These answers need to be adjusted based on actual script prompts
-$answers = @()
-$answers += $DriveLetter  # Drive letter
-$answers += "y"           # Confirmation
-$answers += ""            # Extra empty line
+# The script expects:
+# 1. Execution policy response (yes/no)
+# 2. Drive letter (e.g., E)
+# 3. Image index (1-6, typically 4 for Pro)
+# 4. Final Enter to continue
+$answers = @(
+    "yes"              # Execution policy confirmation
+    $DriveLetter       # Drive letter without colon
+    $ImageIndex        # Image index to build
+    ""                 # Final confirmation
+)
 
 Write-Host ""
 Write-Host "================================================"
 Write-Host "Starting automated build process..."
 Write-Host "Using mounted drive: ${DriveLetter}:"
+Write-Host "Building image index: $ImageIndex"
 Write-Host "================================================"
 Write-Host ""
 

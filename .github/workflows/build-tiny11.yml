@@ -19,6 +19,18 @@ on:
           - both
           - tiny11
           - tiny11core
+      image_index:
+        description: 'Windows image index (1=Home, 2=Home Single, 3=Education, 4=Pro, 5=Pro Education, 6=Pro Workstation)'
+        required: true
+        default: '4'
+        type: choice
+        options:
+          - '1'
+          - '2'
+          - '3'
+          - '4'
+          - '5'
+          - '6'
 
 jobs:
   build-tiny11:
@@ -76,7 +88,8 @@ jobs:
           .\scripts\Build-Tiny11.ps1 `
             -BuildType "tiny11" `
             -DriveLetter "${{ steps.mount_iso.outputs.drive_letter }}" `
-            -ScriptPath ".\tiny11maker.ps1"
+            -ScriptPath ".\tiny11maker.ps1" `
+            -ImageIndex ${{ github.event.inputs.image_index }}
         shell: pwsh
       
       - name: Build Tiny11 Core
@@ -90,7 +103,8 @@ jobs:
           .\scripts\Build-Tiny11.ps1 `
             -BuildType "tiny11core" `
             -DriveLetter "${{ steps.mount_iso.outputs.drive_letter }}" `
-            -ScriptPath ".\tiny11Coremaker.ps1"
+            -ScriptPath ".\tiny11Coremaker.ps1" `
+            -ImageIndex ${{ github.event.inputs.image_index }}
         shell: pwsh
       
       - name: Unmount ISO
