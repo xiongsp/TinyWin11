@@ -127,8 +127,21 @@ All scripts now pass syntax validation in PowerShell 5.1:
 ## Compatibility
 
 These scripts are now confirmed compatible with:
-- ✅ Windows PowerShell 5.1 (used in GitHub Actions)
-- ✅ PowerShell 7.x (cross-platform)
+- ✅ Windows PowerShell 5.1 (for helper scripts)
+- ✅ PowerShell 7.x (required for tiny11maker.ps1 and tiny11Coremaker.ps1)
+
+### Script Requirements
+
+| Script | PowerShell 5.1 | PowerShell 7+ |
+|--------|----------------|---------------|
+| Download-WindowsISO.ps1 | ✅ | ✅ |
+| Build-Tiny11.ps1 | ✅ | ✅ |
+| Prepare-Release.ps1 | ✅ | ✅ |
+| Generate-ReleaseNotes.ps1 | ✅ | ✅ |
+| tiny11maker.ps1 | ❌ | ✅ Required |
+| tiny11Coremaker.ps1 | ❌ | ✅ Required |
+
+**Note:** `Build-Tiny11.ps1` automatically detects and uses PowerShell 7 when executing tiny11maker.ps1/tiny11Coremaker.ps1.
 
 ## Testing
 
@@ -146,7 +159,9 @@ Tests Failed: 1 (parameter help - non-critical)
 
 ## GitHub Actions
 
-No changes needed to the workflow YAML - it already uses `shell: powershell` which invokes Windows PowerShell 5.1.
+The workflow YAML uses different PowerShell versions for different steps:
+- `shell: powershell` - Uses Windows PowerShell 5.1 for helper scripts
+- `shell: pwsh` - Uses PowerShell 7 for build steps (tiny11maker.ps1 execution)
 
 ---
 

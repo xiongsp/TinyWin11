@@ -68,20 +68,30 @@ jobs:
       - name: Build Tiny11
         if: ${{ github.event.inputs.build_type == 'tiny11' || github.event.inputs.build_type == 'both' }}
         run: |
+          # GitHub Actions Windows runners run with Administrator privileges by default
+          Write-Host "Checking Administrator privileges..."
+          $isAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+          Write-Host "Running as Administrator: $isAdmin"
+          
           .\scripts\Build-Tiny11.ps1 `
             -BuildType "tiny11" `
             -DriveLetter "${{ steps.mount_iso.outputs.drive_letter }}" `
             -ScriptPath ".\tiny11maker.ps1"
-        shell: powershell
+        shell: pwsh
       
       - name: Build Tiny11 Core
         if: ${{ github.event.inputs.build_type == 'tiny11core' || github.event.inputs.build_type == 'both' }}
         run: |
+          # GitHub Actions Windows runners run with Administrator privileges by default
+          Write-Host "Checking Administrator privileges..."
+          $isAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+          Write-Host "Running as Administrator: $isAdmin"
+          
           .\scripts\Build-Tiny11.ps1 `
             -BuildType "tiny11core" `
             -DriveLetter "${{ steps.mount_iso.outputs.drive_letter }}" `
             -ScriptPath ".\tiny11Coremaker.ps1"
-        shell: powershell
+        shell: pwsh
       
       - name: Unmount ISO
         if: always()

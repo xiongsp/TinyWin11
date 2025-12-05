@@ -43,9 +43,24 @@
 ```
 
 **功能：**
+- 自动检测并使用 PowerShell 7（如果可用）
+- tiny11maker.ps1 需要 PowerShell 7 才能正常运行
 - 自动设置执行策略
 - 通过管道提供自动化输入
 - 错误处理和日志记录
+
+**要求：**
+- **管理员权限**（必需）
+- PowerShell 7+ 推荐（GitHub Actions Windows runner 已预装）
+- 如果本地测试，请先安装 [PowerShell 7](https://github.com/PowerShell/PowerShell/releases)
+
+**本地运行：**
+```powershell
+# 必须以管理员身份运行 PowerShell
+# 1. 右键点击 PowerShell 图标
+# 2. 选择 "以管理员身份运行"
+# 3. 然后执行脚本
+```
 
 ---
 
@@ -111,11 +126,13 @@
 
 ### 测试构建脚本
 ```powershell
+# ⚠️ 必须以管理员身份运行 PowerShell！
+
 # 先手动挂载 ISO
 $mount = Mount-DiskImage -ImagePath "path\to\Windows11.iso" -PassThru
 $drive = ($mount | Get-Volume).DriveLetter
 
-# 运行构建脚本
+# 运行构建脚本（会自动检查管理员权限）
 .\scripts\Build-Tiny11.ps1 `
     -BuildType "tiny11" `
     -DriveLetter $drive `

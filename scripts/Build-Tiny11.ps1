@@ -42,8 +42,29 @@ Write-Host "================================================"
 Write-Host ""
 
 try {
-    # 使用管道自动输入答案
-    $result = $answers | & $ScriptPath
+    # Check if running as Administrator
+    $isAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+    
+    if (-not $isAdmin) {
+        Write-Error "This script requires Administrator privileges!"
+        Write-Error "Please run PowerShell as Administrator and try again."
+        exit 1
+    }
+    
+    Write-Host "Running with Administrator privileges: OK"
+    
+    # Check if PowerShell 7 is available
+    $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
+    
+    if ($pwshPath) {
+        Write-Host "Using PowerShell 7 to execute build script..."
+        # Use PowerShell 7 to execute the script with automated input
+        $answers | & $pwshPath -NoProfile -Command "& '$ScriptPath'"
+    } else {
+        Write-Host "PowerShell 7 not found, using current PowerShell version..."
+        # Fallback to current PowerShell
+        $result = $answers | & $ScriptPath
+    }
     
     if ($LASTEXITCODE -eq 0 -or $null -eq $LASTEXITCODE) {
         Write-Host ""

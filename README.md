@@ -102,8 +102,16 @@ Tiny11/
 
 ### GitHub Actions Runner
 - 操作系统：Windows (latest)
+- PowerShell：PowerShell 7+（GitHub Actions 已预装）
 - 磁盘空间：至少 20GB 可用空间
 - 运行时间：构建可能需要 30-60 分钟
+
+### 本地开发环境
+- Windows 10/11
+- PowerShell 7+ ([下载地址](https://github.com/PowerShell/PowerShell/releases))
+- 至少 20GB 可用磁盘空间
+- **管理员权限**（必需 - 用于挂载 ISO 和运行构建脚本）
+  - 右键点击 PowerShell → "以管理员身份运行"
 
 ### 使用生成的 ISO
 - 至少 8GB USB 驱动器（用于创建启动盘）
@@ -134,9 +142,28 @@ Tiny11/
 
 ## 本地测试
 
+### 先决条件检查
+
+在开始之前，运行先决条件检查脚本（以管理员身份）：
+
+```powershell
+# 以管理员身份运行 PowerShell，然后执行：
+.\scripts\Check-Prerequisites.ps1
+```
+
+这将检查：
+- ✅ 管理员权限
+- ✅ PowerShell 版本
+- ✅ PowerShell 7 可用性
+- ✅ 磁盘空间
+
+### 测试脚本
+
 所有脚本都可以在本地测试，无需 GitHub Actions：
 
 ```powershell
+# ⚠️ 记住：必须以管理员身份运行！
+
 # 测试下载脚本
 .\scripts\Download-WindowsISO.ps1 `
     -LinksFile "iso-links.txt" `
